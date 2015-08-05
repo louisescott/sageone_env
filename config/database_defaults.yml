@@ -1,0 +1,25 @@
+apps:  
+  new_accountant_edition: 
+    database_name: 'accountants_uk' 
+    username: 'nigel'
+    password: 'password'
+  mysageone_uk: 
+    database_name: 'sageone_mso_uk' 
+    username: 'nigel'
+    password: 'password'
+  sage_one_addons_uk:
+    database_name: 'sageone_addons_uk'
+    username: 'nigel' 
+    password: 'password'
+  chorizo:
+    database_name: 'sageone_collaborate_uk'
+    username: 'nigel'
+    password: 'password'
+  sage_one_advanced:
+    database_name: 'sageone_ext_uk'
+    username: 'nigel'
+    password: 'password'
+  sage_one_accounts_uk:
+    database_name: 'sageone_acc_uk'
+    username: 'nigel'
+    password: 'password'

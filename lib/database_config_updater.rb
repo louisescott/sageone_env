@@ -8,37 +8,7 @@ class DatabaseConfigUpdater
   def initialize(arg_processor, args)
     raise ArgumentError.new("argument processor is nil")  if arg_processor.nil?
     @arg_processor = arg_processor
-    @apps = {:new_accountant_edition => 
-                                   {:yml_location => 'host_app/config/database.yml',
-                                    :database_name => 'sageone_acc_uk', 
-                                    :username => 'nigel', 
-                                    :password => 'password'},
-             :mysageone_uk => 
-                                   {:yml_location => 'host_app/config/database.yml',
-                                     :database_name => 'sageone_mso_uk', 
-                                     :username => 'nigel', 
-                                     :password => 'password'},
-             :sage_one_addons_uk => 
-                                   {:yml_location => 'host_app/config/database.yml',
-                                     :database_name => 'sageone_addons_uk', 
-                                     :username => 'nigel', 
-                                     :password => 'password'},
-             :chorizo => 
-                                   {:yml_location => 'host_app/config/database.yml',
-                                    :database_name => 'sageone_collaborate_uk', 
-                                    :username => 'nigel', 
-                                    :password => 'password'},
-             #:sage_one_advanced => 
-              #                     {:yml_location => 'host_app/config/database.yml',
-               #                     :database_name => 'sageone_ext_uk',
-                #                    :username => 'nigel', 
-                 #                   :password => 'password'},
-             :sage_one_accounts_uk => 
-                                   {:yml_location => 'host_app/config/database.yml',
-                                    :database_name => 'sageone_acc_uk',
-                                    :username => 'nigel', 
-                                    :password => 'password'}}
-
+    @config = YAML.load_file(File.open("config/database_defaults.yml"))
     @args = @arg_processor.process_args(args)
     route_request(@args)
   end
@@ -69,7 +39,7 @@ class DatabaseConfigUpdater
 
   def checkout_changes
     puts ""
-    @apps.each do |app|
+    @config.each do |app|
       if File.directory?(app[0].to_s)
         begin
           Dir.chdir app[0].to_s
@@ -94,26 +64,58 @@ class DatabaseConfigUpdater
     puts ""
     puts colorize("Configured the following for #{@args["-t"]}:",32)
     puts ""
-    @apps.each do |app|
+    @config.each do |app|
       if File.directory?(app[0].to_s)
         Dir.chdir app[0].to_s
-        pwd = Dir.pwd
-        yaml = "#{pwd}/#{app[1][:yml_location]}"
+        yaml = app[1][:yml_location]
         config = YAML.load ERB.new(IO.read(yaml)).result
-        config[@args["-t"]]["database"]  = app[1][:database_name]
-        File.open(app[1][:yml_location],'w') do |h| 
-          h.write config.to_yaml
-        end
-          status = `git status`
-          puts "#{app[0]}/#{app[1][:yml_location]}" if status.include?("database.yml")
+        set_host(config,yaml,app)
+        set_database(config,yaml,app)
+        set_username_and_password(config,yaml,app)
+        status = `git status`
+        puts "#{app[0]}/#{app[1][:yml_location]}" if status.include?("database.yml")
         Dir.chdir ".."
       end
     end
     puts ""
   end
 
+  def set_host(config, yaml, app)
+    if config[@args["-t"]].has_key?("host") 
+      config[@args["-t"]]["host"] = @args["-e"]
+      config["default"]["host"] = @args["-e"]
+    else
+      config["default"]["host"] = @args["-e"]
+    end
+    File.open(yaml,'w') do |h| 
+      h.write config.to_yaml
+    end
+  end
+
+  def set_username_and_password(config,yaml,app)
+    if config[@args["-t"]].has_key?("username") 
+      config[@args["-t"]]["username"] = app[1][:username]
+      config[@args["-t"]]["password"] = app[1][:password]
+      config["default"]["username"] = app[1][:username]
+      config["default"]["password"] = app[1][:password]
+    else
+      config["default"]["username"] = app[1][:username]
+      config["default"]["password"] = app[1][:password]
+    end
+    File.open(yaml,'w') do |h| 
+      h.write config.to_yaml
+    end
+  end
+
+  def set_database(config,yaml_file, app)
+    config[@args["-t"]]["database"]  = app[1][:database_name]
+    File.open(yaml_file,'w') do |h| 
+      h.write config.to_yaml
+    end
+  end
+
   def defaults
-    @apps.each do |app|
+    @config.each do |app|
     puts app[0]
     puts "Database: #{ app[1][:database_name]}"
     puts "Username: #{ app[1][:username]}"
@@ -143,6 +145,7 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          Use the following switches to pass arguments                                ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          -e <environment>          [",36) + colorize("required",31) + colorize("]                                  ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -d <database name> [optional]                                               ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -u <username>      [optional]                                               ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -p <password>      [optional]                                               ",36) + colorize("**",32)
@@ -161,7 +164,7 @@ class DatabaseConfigUpdater
 
   def sage_app?(dir)
     if is_directory(dir)
-      @apps.each do |app| 
+      @config.each do |app| 
         return true if dir.include?(app.first) 
       end
     end

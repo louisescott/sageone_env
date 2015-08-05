@@ -5,7 +5,7 @@ require 'pry'
 class ArgumentProcessor
 
  def initialize
-   @switches = {"-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
+   @switches = {"-e" => "environment", "-h" => "help", "-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
    @commands = ["--revert", "--default", "--help", "-h"]
  end
  
