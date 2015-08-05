@@ -1,14 +1,15 @@
 require 'yaml'
 require "erb"
 require 'pry'
-require 'argument_processor.rb'
+require_relative 'argument_processor.rb'
 
 class DatabaseConfigUpdater
 
   def initialize(arg_processor, args)
     raise ArgumentError.new("argument processor is nil")  if arg_processor.nil?
     @arg_processor = arg_processor
-    @config = YAML.load_file(File.open("config/database_defaults.yml"))
+    database_defaults = File.join( File.dirname(__FILE__), '../config/database_defaults.yml' )
+    @config = YAML.load_file(File.open(database_defaults))
     @args = @arg_processor.process_args(args)
     route_request(@args)
   end
@@ -65,6 +66,7 @@ class DatabaseConfigUpdater
     puts colorize("Configured the following for #{@args["-t"]}:",32)
     puts ""
     @config.each do |app|
+      puts app[0].to_s
       if File.directory?(app[0].to_s)
         Dir.chdir app[0].to_s
         yaml = app[1][:yml_location]
@@ -81,19 +83,19 @@ class DatabaseConfigUpdater
   end
 
   def set_host(config, yaml, app)
-    if config[@args["-t"]].has_key?("host") 
+    if config[@args["-t"]].has_key?("host")
       config[@args["-t"]]["host"] = @args["-e"]
       config["default"]["host"] = @args["-e"]
     else
       config["default"]["host"] = @args["-e"]
     end
-    File.open(yaml,'w') do |h| 
+    File.open(yaml,'w') do |h|
       h.write config.to_yaml
     end
   end
 
   def set_username_and_password(config,yaml,app)
-    if config[@args["-t"]].has_key?("username") 
+    if config[@args["-t"]].has_key?("username")
       config[@args["-t"]]["username"] = app[1][:username]
       config[@args["-t"]]["password"] = app[1][:password]
       config["default"]["username"] = app[1][:username]
@@ -102,14 +104,14 @@ class DatabaseConfigUpdater
       config["default"]["username"] = app[1][:username]
       config["default"]["password"] = app[1][:password]
     end
-    File.open(yaml,'w') do |h| 
+    File.open(yaml,'w') do |h|
       h.write config.to_yaml
     end
   end
 
   def set_database(config,yaml_file, app)
     config[@args["-t"]]["database"]  = app[1][:database_name]
-    File.open(yaml_file,'w') do |h| 
+    File.open(yaml_file,'w') do |h|
       h.write config.to_yaml
     end
   end
@@ -159,13 +161,13 @@ class DatabaseConfigUpdater
    puts colorize("**********************************************************************************************************",32)
    puts colorize("**********************************************************************************************************",32)
    puts ""
-   
+
  end
 
   def sage_app?(dir)
     if is_directory(dir)
-      @config.each do |app| 
-        return true if dir.include?(app.first) 
+      @config.each do |app|
+        return true if dir.include?(app.first)
       end
     end
     false
@@ -173,6 +175,6 @@ class DatabaseConfigUpdater
 
   def is_directory(dir)
     return true
-   File.directory dir  
+   File.directory dir
   end
 end
