@@ -66,16 +66,15 @@ class DatabaseConfigUpdater
     puts colorize("Configured the following for #{@args["-t"]}:",32)
     puts ""
     @config.each do |app|
-      puts app[0].to_s
       if File.directory?(app[0].to_s)
         Dir.chdir app[0].to_s
-        yaml = app[1][:yml_location]
+        yaml = app[1]["yml_location"]
         config = YAML.load ERB.new(IO.read(yaml)).result
         set_host(config,yaml,app)
         set_database(config,yaml,app)
         set_username_and_password(config,yaml,app)
         status = `git status`
-        puts "#{app[0]}/#{app[1][:yml_location]}" if status.include?("database.yml")
+        puts "#{app[0]}/#{app[1]["yml_location"]}" if status.include?("database.yml")
         Dir.chdir ".."
       end
     end
@@ -83,11 +82,11 @@ class DatabaseConfigUpdater
   end
 
   def set_host(config, yaml, app)
-    if config[@args["-t"]].has_key?("host")
-      config[@args["-t"]]["host"] = @args["-e"]
-      config["default"]["host"] = @args["-e"]
+    if config[@args[:switches]["-t"]].has_key?("host")
+      config[@args[:switches]["-t"]]["host"] = @args[:switches]["-e"]
+      config["default"]["host"] = @args[:switches]["-e"]
     else
-      config["default"]["host"] = @args["-e"]
+      config["default"]["host"] = @args[:switches]["-e"]
     end
     File.open(yaml,'w') do |h|
       h.write config.to_yaml
@@ -95,14 +94,14 @@ class DatabaseConfigUpdater
   end
 
   def set_username_and_password(config,yaml,app)
-    if config[@args["-t"]].has_key?("username")
-      config[@args["-t"]]["username"] = app[1][:username]
-      config[@args["-t"]]["password"] = app[1][:password]
-      config["default"]["username"] = app[1][:username]
-      config["default"]["password"] = app[1][:password]
+    if config[@args[:switches]["-t"]].has_key?("username")
+      config[@args[:switches]["-t"]]["username"] = app[1]["username"]
+      config[@args[:switches]["-t"]]["password"] = app[1]["password"]
+      config["default"]["username"] = app[1]["username"]
+      config["default"]["password"] = app[1]["password"]
     else
-      config["default"]["username"] = app[1][:username]
-      config["default"]["password"] = app[1][:password]
+      config["default"]["username"] = app[1]["username"]
+      config["default"]["password"] = app[1]["password"]
     end
     File.open(yaml,'w') do |h|
       h.write config.to_yaml
@@ -110,7 +109,7 @@ class DatabaseConfigUpdater
   end
 
   def set_database(config,yaml_file, app)
-    config[@args["-t"]]["database"]  = app[1][:database_name]
+    config[@args[:switches]["-t"]]["database"]  = app[1]["database_name"]
     File.open(yaml_file,'w') do |h|
       h.write config.to_yaml
     end
@@ -119,9 +118,9 @@ class DatabaseConfigUpdater
   def defaults
     @config.each do |app|
     puts app[0]
-    puts "Database: #{ app[1][:database_name]}"
-    puts "Username: #{ app[1][:username]}"
-    puts "Password: #{ app[1][:password]}"
+    puts "Database: #{ app[1]["database_name"]}"
+    puts "Username: #{ app[1]["username"]}"
+    puts "Password: #{ app[1]["password"]}"
     puts ""
     end
   end
@@ -147,12 +146,12 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          Use the following switches to pass arguments                                ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -e <environment>          [",36) + colorize("required",31) + colorize("]                                  ",36) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          -e <environment>   [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -d <database name> [optional]                                               ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -u <username>      [optional]                                               ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -p <password>      [optional]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          e.g. -t test                                                                ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Valid hosts are 'test' and 'development'                                    ",36) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          e.g. -t my-uat-build -e test                                                ",36) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          Valid environments are 'test' and 'development'                             ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                      ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--default " + colorize("to output default settings                                        ",33) + colorize("**",32)
