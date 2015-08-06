@@ -1,11 +1,10 @@
 require 'yaml'
 require "erb"
-require 'pry'
 
 class ArgumentProcessor
 
  def initialize
-   @switches = {"-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
+   @switches = {"-e" => "environment", "-h" => "help", "-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
    @commands = ["--revert", "--default", "--help", "-h"]
  end
  
@@ -37,7 +36,7 @@ class ArgumentProcessor
          state = :reading
          switch = arg
        else
-         values[:errors] << 'missing switch' 
+         values[:errors] << 'invalid switch'
          values[:commands] << "--help"
          state = :error
        end

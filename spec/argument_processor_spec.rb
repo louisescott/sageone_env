@@ -11,7 +11,7 @@ describe ArgumentProcessor do
     end
     context 'when an invalid argument is passed' do 
       it 'expects values to include an error in the return' do
-        expect(subject.process_args(["-z"])).to eq({:commands=>["--help"],:switches=>{},:errors=>["missing switch"]})
+        expect(subject.process_args(["-z"])).to eq({:commands=>["--help"],:switches=>{},:errors=>["invalid switch"]})
       end
     end
     context 'when a valid argument is passed' do 
