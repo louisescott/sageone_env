@@ -1,20 +1,32 @@
 require 'yaml'
 require "erb"
-require 'pry'
 require_relative 'argument_processor.rb'
+require 'pry'
 
 class DatabaseConfigUpdater
 
   def initialize(arg_processor, args)
     raise ArgumentError.new("argument processor is nil")  if arg_processor.nil?
     @arg_processor = arg_processor
-    database_defaults = File.join( File.dirname(__FILE__), '../config/database_defaults.yml' )
-    @config = YAML.load_file(File.open(database_defaults))
+    @config = load_config_defaults
     @args = @arg_processor.process_args(args)
+    print_errors if @args[:errors].any?
     route_request(@args)
   end
 
   private
+
+  def print_errors
+    @args[:errors].each do |error|
+      puts colorize(error,31)
+    end
+  end
+
+  def load_config_defaults
+    path = File.dirname(__FILE__)
+    database_defaults = File.join(path, '../config/database_defaults.yml' )
+    YAML.load_file(File.open(database_defaults))
+  end
 
   def route_request(args)
     if args[:commands].any?
@@ -31,8 +43,12 @@ class DatabaseConfigUpdater
     elsif args[:switches].any?
       args[:switches].each do |switch|
         case switch.first
-        when "-t"
-          switch_environment
+        when "-e"
+          if args[:switches].include?("-t")
+            switch_environment
+          else
+            print_help
+          end
         end
       end
     end
@@ -68,11 +84,7 @@ class DatabaseConfigUpdater
     @config.each do |app|
       if File.directory?(app[0].to_s)
         Dir.chdir app[0].to_s
-        yaml = app[1]["yml_location"]
-        config = YAML.load ERB.new(IO.read(yaml)).result
-        set_host(config,yaml,app)
-        set_database(config,yaml,app)
-        set_username_and_password(config,yaml,app)
+        configure_yaml_settings(app)
         status = `git status`
         puts "#{app[0]}/#{app[1]["yml_location"]}" if status.include?("database.yml")
         Dir.chdir ".."
@@ -81,38 +93,44 @@ class DatabaseConfigUpdater
     puts ""
   end
 
-  def set_host(config, yaml, app)
-    if config[@args[:switches]["-t"]].has_key?("host")
-      config[@args[:switches]["-t"]]["host"] = @args[:switches]["-e"]
-      config["default"]["host"] = @args[:switches]["-e"]
-    else
-      config["default"]["host"] = @args[:switches]["-e"]
-    end
+  def configure_yaml_settings(app)
+    yaml = app[1]["yml_location"]
+    config = YAML.load ERB.new(IO.read(yaml)).result
+    set_host(config,yaml,app)
+    set_database(config,yaml,app)
+    set_username_and_password(config,yaml,app)
+    save_yaml_to_file(config,yaml)
+  end
+
+  def save_yaml_to_file(config,yaml)
     File.open(yaml,'w') do |h|
       h.write config.to_yaml
+    end
+  end
+
+  def set_host(config, yaml, app)
+    if config[@args[:switches]["-e"]].has_key?("host")
+      config[@args[:switches]["-e"]]["host"] = @args[:switches]["-t"]
+      config["default"]["host"] = @args[:switches]["-t"]
+    else
+      config["default"]["host"] = @args[:switches]["-t"]
     end
   end
 
   def set_username_and_password(config,yaml,app)
-    if config[@args[:switches]["-t"]].has_key?("username")
-      config[@args[:switches]["-t"]]["username"] = app[1]["username"]
-      config[@args[:switches]["-t"]]["password"] = app[1]["password"]
-      config["default"]["username"] = app[1]["username"]
-      config["default"]["password"] = app[1]["password"]
+    if config[@args[:switches]["-e"]].has_key?("username")
+      config[@args[:switches]["-e"]]["username"] = @args[:switches]["-u"] || app[1]["username"]
+      config[@args[:switches]["-e"]]["password"] =  @args[:switches]["-p"] || app[1]["password"]
+      config["default"]["username"] =  @args[:switches]["-u"] || app[1]["username"]
+      config["default"]["password"] =  @args[:switches]["-p"] || app[1]["password"]
     else
-      config["default"]["username"] = app[1]["username"]
-      config["default"]["password"] = app[1]["password"]
-    end
-    File.open(yaml,'w') do |h|
-      h.write config.to_yaml
+      config["default"]["username"] =  @args[:switches]["-u"] || app[1]["username"]
+      config["default"]["password"] =  @args[:switches]["-p"] || app[1]["password"]
     end
   end
 
   def set_database(config,yaml_file, app)
-    config[@args[:switches]["-t"]]["database"]  = app[1]["database_name"]
-    File.open(yaml_file,'w') do |h|
-      h.write config.to_yaml
-    end
+    config[@args[:switches]["-e"]]["database"]  =  @args[:switches]["-d"] || app[1]["database_name"]
   end
 
   def defaults
@@ -134,7 +152,6 @@ class DatabaseConfigUpdater
  end
 
  def print_help
-   system( "clear")
    puts ""
    puts colorize("**********************************************************************************************************",32)
    puts colorize("**********************************************************************************************************",32)

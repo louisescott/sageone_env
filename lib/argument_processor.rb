@@ -1,6 +1,5 @@
 require 'yaml'
 require "erb"
-require 'pry'
 
 class ArgumentProcessor
 
@@ -37,7 +36,7 @@ class ArgumentProcessor
          state = :reading
          switch = arg
        else
-         values[:errors] << 'missing switch' 
+         values[:errors] << 'invalid switch'
          values[:commands] << "--help"
          state = :error
        end
