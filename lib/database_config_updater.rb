@@ -1,7 +1,6 @@
 require 'yaml'
 require "erb"
 require_relative 'argument_processor.rb'
-require 'pry'
 
 class DatabaseConfigUpdater
 

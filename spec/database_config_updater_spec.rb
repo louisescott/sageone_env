@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 require 'database_config_updater.rb'
 
 describe DatabaseConfigUpdater do
