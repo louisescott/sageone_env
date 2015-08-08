@@ -224,16 +224,11 @@ class DatabaseConfigUpdater
  end
 
   def sage_app?(dir)
-    if is_directory(dir)
+    if File.directory? dir
       @config.each do |app|
         return true if dir.include?(app.first)
       end
     end
     false
-  end
-
-  def is_directory(dir)
-    return true
-   File.directory dir
   end
 end
