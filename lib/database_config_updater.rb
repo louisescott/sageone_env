@@ -1,6 +1,5 @@
 require 'yaml'
 require "erb"
-require 'pry'
 require 'active_support/all'
 
 require_relative 'argument_processor.rb'
@@ -60,7 +59,7 @@ class DatabaseConfigUpdater
   def checkout_changes
     puts ""
     @config.each do |app|
-    yaml_path ="#{@pwd}/#{app[0].to_s}/host_app/config/"
+    yaml_path = get_yaml_path(app)
       if File.directory?(yaml_path)
         begin
           Dir.chdir yaml_path
@@ -79,11 +78,15 @@ class DatabaseConfigUpdater
     puts ""
   end
 
+  def get_yaml_path(app)
+    "#{@pwd}/#{app[0].to_s}/host_app/config/"
+  end
+
   def switch_environment
     ENV['DATABASE_UID'] = "DB"
     changes = {}
     @config.each do |app|
-    yaml_path ="#{@pwd}/#{app[0].to_s}/host_app/config/"
+    yaml_path = get_yaml_path(app)
       if File.directory?(yaml_path)
         Dir.chdir yaml_path
         can_proceed = if yaml_dirty?
