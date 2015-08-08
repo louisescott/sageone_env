@@ -63,7 +63,7 @@ describe DatabaseConfigUpdater do
           end
           it "expects 'configure_yaml_settings' method to be called for each app" do
             arg_processor = ArgumentProcessor.new
-            expect_any_instance_of(DatabaseConfigUpdater).to receive(:configure_yaml_settings).exactly(5).times
+            expect_any_instance_of(DatabaseConfigUpdater).to receive(:configure_yaml_settings).exactly(6).times
             DatabaseConfigUpdater.new(arg_processor,["-t","my-uat-build","-e","test"])
           end
         end
