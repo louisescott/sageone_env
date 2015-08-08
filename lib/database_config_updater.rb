@@ -60,10 +60,10 @@ class DatabaseConfigUpdater
   def checkout_changes
     puts ""
     @config.each do |app|
-    app_directory ="#{@pwd}/#{app[0].to_s}/host_app/config/"
-      if File.directory?(app_directory)
+    yaml_path ="#{@pwd}/#{app[0].to_s}/host_app/config/"
+      if File.directory?(yaml_path)
         begin
-          Dir.chdir app_directory
+          Dir.chdir yaml_path
         rescue
           continue
         end
@@ -81,11 +81,11 @@ class DatabaseConfigUpdater
 
   def switch_environment
     ENV['DATABASE_UID'] = "DB"
-    apps_changed = {}
+    changes = {}
     @config.each do |app|
-    app_directory ="#{@pwd}/#{app[0].to_s}/host_app/config/"
-      if File.directory?(app_directory)
-        Dir.chdir app_directory
+    yaml_path ="#{@pwd}/#{app[0].to_s}/host_app/config/"
+      if File.directory?(yaml_path)
+        Dir.chdir yaml_path
         can_proceed = if yaml_dirty?
                         user_wants_to_proceed_when_dirty?(app[0]) ? true : false
                       else
@@ -93,22 +93,30 @@ class DatabaseConfigUpdater
                       end
         configure_yaml_settings(app) if can_proceed
         status = `git status`
-        apps_changed[app[0]] = {:file => "#{app[0]}/#{app[1]["yml_location"]}" , :dirtied? => can_proceed }  if status.include?("database.yml")
+        changes[app[0]] = {:file => "#{app[0]}/#{app[1]["yml_location"]}" , :dirtied? => can_proceed }  if status.include?("database.yml")
       end
       Dir.chdir @pwd
     end
-    puts ""
-    puts colorize("Configured #{colorize("'#{@args[:switches]["-e"]}'",33)} #{colorize("for target:",32)} #{colorize("'#{@args[:switches]["-t"]}'",33)} #{colorize("in the following apps:",32)} ",32) if apps_changed.select{|app,dirtied| dirtied[:dirtied?]==true}.any?
+    output_changes(changes)
+  end
 
-    apps_changed.each do |app, dirtied|
+  def output_changes(changes)
+    puts ""
+    puts colorize("Configured #{colorize("'#{@args[:switches]["-e"]}'",33)} #{colorize("for target:",32)} #{colorize("'#{@args[:switches]["-t"]}'",33)} #{colorize("in the following apps:",32)} ",32) if config_has_changed?(changes,true)
+
+    changes.each do |app, dirtied|
       puts dirtied[:file] if  dirtied[:dirtied?] == true
     end
     puts ""
-    puts colorize("The following have not been configured as you chose to keep existing changes:",32) if apps_changed.select{|app,dirtied| dirtied[:dirtied?]==false}.any?
-    apps_changed.each do |app, dirtied|
+    puts colorize("The following have not been configured as you chose to keep existing changes:",32) if config_has_changed?(changes,false) 
+    changes.each do |app, dirtied|
       puts dirtied[:file] if  dirtied[:dirtied?] == false
     end
     puts ""
+  end
+
+  def config_has_changed?(changes,is_dirty)
+    changes.select{|app,dirtied| dirtied[:dirtied?]==is_dirty}.any?
   end
 
   def yaml_dirty?
