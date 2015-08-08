@@ -23,3 +23,8 @@ sage_one_accounts_uk:
   username: 'nigel'
   password: 'password'
   yml_location: 'host_app/config/database.yml'
+sage_one_advanced:
+  database_name: 'sageone_acc_uk'
+  username: 'nigel'
+  password: 'password'
+  yml_location: 'host_app/config/database.yml'
