@@ -2,5 +2,8 @@
 
 require_relative '../lib/argument_processor.rb'
 require_relative '../lib/database_config_updater.rb'
+require_relative '../lib/menu/options_menu.rb'
+require_relative '../lib/menu/menu_handlers.rb'
+
 args_processor = ArgumentProcessor.new
 configurator = DatabaseConfigUpdater.new(args_processor, ARGV)

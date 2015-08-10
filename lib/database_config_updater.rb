@@ -20,7 +20,7 @@ class DatabaseConfigUpdater
 
   def print_errors
     @args[:errors].each do |error|
-      puts colorize(error,31)
+      STDOUT.puts colorize(error,31)
     end
   end
 
@@ -57,7 +57,7 @@ class DatabaseConfigUpdater
   end
 
   def checkout_changes
-    puts ""
+    STDOUT.puts ""
     @config.each do |app|
     yaml_path = get_yaml_path(app)
       if File.directory?(yaml_path)
@@ -70,12 +70,12 @@ class DatabaseConfigUpdater
         if status.include?("database.yml")
           system("git checkout database.yml")
           status = `git status`
-          puts colorize("Checked out:",32) + " #{app[0]}/#{app[1][:yml_location]}" if !status.include?("database.yml")
+          STDOUT.puts colorize("Checked out:",32) + " #{app[0]}/#{app[1][:yml_location]}" if !status.include?("database.yml")
         end
       end
     end
       Dir.chdir @pwd
-    puts ""
+    STDOUT.puts ""
   end
 
   def get_yaml_path(app)
@@ -104,18 +104,18 @@ class DatabaseConfigUpdater
   end
 
   def output_changes(changes)
-    puts ""
-    puts colorize("Configured #{colorize("'#{@args[:switches]["-e"]}'",33)} #{colorize("for target:",32)} #{colorize("'#{@args[:switches]["-t"]}'",33)} #{colorize("in the following apps:",32)} ",32) if config_has_changed?(changes,true)
+    STDOUT.puts ""
+    STDOUT.puts colorize("Configured #{colorize("'#{@args[:switches]["-e"]}'",33)} #{colorize("for target:",32)} #{colorize("'#{@args[:switches]["-t"]}'",33)} #{colorize("in the following apps:",32)} ",32) if config_has_changed?(changes,true)
 
     changes.each do |app, dirtied|
-      puts dirtied[:file] if  dirtied[:dirtied?] == true
+      STDOUT.puts dirtied[:file] if  dirtied[:dirtied?] == true
     end
-    puts ""
-    puts colorize("The following have not been configured as you chose to keep existing changes:",32) if config_has_changed?(changes,false) 
+    STDOUT.puts ""
+    STDOUT.puts colorize("The following have not been configured as you chose to keep existing changes:",32) if config_has_changed?(changes,false) 
     changes.each do |app, dirtied|
-      puts dirtied[:file] if  dirtied[:dirtied?] == false
+      STDOUT.puts dirtied[:file] if  dirtied[:dirtied?] == false
     end
-    puts ""
+    STDOUT.puts ""
   end
 
   def config_has_changed?(changes,is_dirty)
@@ -148,7 +148,7 @@ class DatabaseConfigUpdater
 
   def save_yaml_to_file(config,yaml)
     File.open(yaml,'w') do |h|
-      h.write config.to_yaml
+      h.puts config.to_yaml
     end
   end
 
@@ -178,16 +178,16 @@ class DatabaseConfigUpdater
 
   def defaults
     @config.each do |app|
-    puts app[0]
-    puts "Database: #{ app[1]["database_name"]}"
-    puts "Username: #{ app[1]["username"]}"
-    puts "Password: #{ app[1]["password"]}"
-    puts ""
+    STDOUT.puts app[0]
+    STDOUT.puts "Database: #{ app[1]["database_name"]}"
+    STDOUT.puts "Username: #{ app[1]["username"]}"
+    STDOUT.puts "Password: #{ app[1]["password"]}"
+    STDOUT.puts ""
     end
   end
 
   def sage_apps_in_pwd
-    Dir.glob('*').select {|f| puts f if sage_app? f}
+    Dir.glob('*').select {|f| STDOUT.puts f if sage_app? f}
   end
 
  def colorize(text, color_code)
@@ -195,32 +195,31 @@ class DatabaseConfigUpdater
  end
 
  def print_help
-   puts ""
-   puts colorize("**********************************************************************************************************",32)
-   puts colorize("**********************************************************************************************************",32)
-   puts colorize("**",32) + colorize("                          This tool configures database settings for the                              ",31) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          targeted environment.                                                       ",31) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          To use run",33) + " sageone_env" + colorize(" with the desired switches and values                 ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          in the same directory as your Sage one apps.                                ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Use the following switches to pass arguments                                ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -e <environment>   [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -d <database name> [optional]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -u <username>      [optional]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -p <password>      [optional]                                               ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          e.g. -t my-uat-build -e test                                                ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Valid environments are 'test' and 'development'                             ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                      ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--default " + colorize("to output default settings                                        ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                      ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
-   puts colorize("**********************************************************************************************************",32)
-   puts colorize("**********************************************************************************************************",32)
-   puts ""
-
+   STDOUT.puts ""
+   STDOUT.puts colorize("**********************************************************************************************************",32)
+   STDOUT.puts colorize("**********************************************************************************************************",32)
+   STDOUT.puts colorize("**",32) + colorize("                          This tool configures database settings for the                              ",31) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          targeted environment.                                                       ",31) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          To use run",33) + " sageone_env" + colorize(" with the desired switches and values                 ",33) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          in the same directory as your Sage one apps.                                ",33) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          Use the following switches to pass arguments                                ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          -e <environment>   [",36) + colorize("required",31) + colorize("]                                               ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          -d <database name> [optional]                                               ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          -u <username>      [optional]                                               ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          -p <password>      [optional]                                               ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          e.g. -t my-uat-build -e test                                                ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          Valid environments are 'test' and 'development'                             ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                      ",33) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          ",36) + "--default " + colorize("to output default settings                                        ",33) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                      ",33) + colorize("**",32)
+   STDOUT.puts colorize("**",32) + colorize("                                                                                                      ",36) + colorize("**",32)
+   STDOUT.puts colorize("**********************************************************************************************************",32)
+   STDOUT.puts colorize("**********************************************************************************************************",32)
+   STDOUT.puts ""
  end
 
   def sage_app?(dir)

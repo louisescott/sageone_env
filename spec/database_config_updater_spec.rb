@@ -37,6 +37,7 @@ describe DatabaseConfigUpdater do
         it "expects print_errors to be called" do
           arg_processor = ArgumentProcessor.new
           expect_any_instance_of(DatabaseConfigUpdater).to receive(:print_errors)
+          expect { my_method }.to output("my message").to_stdout
           DatabaseConfigUpdater.new(arg_processor,["-z"])
         end
       end
