@@ -19,7 +19,6 @@ run rbenv rehash after installing
 
 ## Usage
 
-TODO: Write usage instructions here
 The gem has defaults stored for each Sageone app available at the time of its launch. The following is a list of defaults held for each app:
   - database_name: <database name>
   - username: <username>
