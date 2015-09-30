@@ -1,33 +1,36 @@
 # SageoneEnv
 
-This gem enables the database yaml file to be configured in each sage application within the directory it is executed in quickly and easily. Once installed it uses command line switches to pass values to, such as the environment and builds targeted. 
+This gem enables the database yaml file to be configured in each sage application within the directory it is executed in quickly and easily. Once installed it uses command line switches to pass values to, such as the environment and builds targeted.
 Default settings are stored in a yaml file such as username and password but these can be overridden. It checks whether the changes have actually taken affect and outputs the result to the user.
 The changes can easily be reversed with one call to the gem. It checks whether the reversal has been successful and outputs the result to the user.
 
 ## Installation
-
 #To use as a command line application clone the repository and run:
 
 ```ruby
 rake install
 ```
-#To use as a gem add this line to your application's Gemfile:
-
-```ruby
-gem 'sageone_env'
-```
-
-And then execute:
-
-    $ bundle
 
 Or install it yourself as:
 
     $ gem install sageone_env
 
+run rbenv rehash after installing
+
 ## Usage
 
 TODO: Write usage instructions here
+The gem has defaults stored for each Sageone app available at the time of its launch. The following is a list of defaults held for each app:
+  database_name: <database name>
+  username: <username>
+  password: <password>
+
+As credentials cannot be stored in source control it would be wise to update the default username and password before configuring to connect to a database. This is a one time only task. Use:
+sageone_env --set_defaults -u <username> -p <password>
+to persist the values.
+Once done this means a username and password is not required ot be passed for your favourite connection. For example the obfuscated database which use the same username and password for every instance.
+
+The changes to the database.yml file involves wiping the file initially then writing new keys for the chosen environment. When finished simply call sageone_env --revert. This itereates over all the altered database.yml files and checks them out from git. It checks that this has been successful and outputs the result to the user.
 
 ## Development
 

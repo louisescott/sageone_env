@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    sageone_env (0.1.0)
+      syck
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rake (10.4.2)
+    syck (1.0.5)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.10)
+  rake (~> 10.0)
+  sageone_env!
+
+BUNDLED WITH
+   1.10.6

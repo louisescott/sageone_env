@@ -1,30 +1,30 @@
 new_accountant_edition:
-  database_name: 'accountants_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: ace_ad
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml
 mysageone_uk:
-  database_name: 'sageone_mso_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: sageone_mso_uk
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml
 sage_one_addons_uk:
-  database_name: 'sageone_addons_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: sageone_addons_uk
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml
 chorizo:
-  database_name: 'sageone_collaborate_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: sageone_collaborate_uk
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml
 sage_one_accounts_uk:
-  database_name: 'sageone_acc_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: sageone_acc_uk
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml
 sage_one_advanced:
-  database_name: 'sageone_acc_uk'
-  username: 'nigel'
-  password: 'password'
-  yml_location: 'host_app/config/database.yml'
+  database_name: sageone_acc_uk
+  username: nigel
+  password: password
+  yml_location: host_app/config/database.yml

@@ -5,9 +5,9 @@ class ArgumentProcessor
 
  def initialize
    @switches = {"-e" => "environment", "-h" => "help", "-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
-   @commands = ["--revert", "--default", "--help", "-h"]
+   @commands = ["--set_defaults","--revert", "--default", "--help", "-h"]
  end
- 
+
  def process_args(args)
    values = {:commands => [], :switches => {}}
    values[:errors] = []
@@ -17,17 +17,17 @@ class ArgumentProcessor
    if args.empty?
      values[:commands] << "--help"
      state = :end
-   elsif
+   else
      args.each do |arg|
        if @commands.include?(arg)
          values[:commands] << arg
-         state = :end
+         #state = :end
        end
      end
    end
+
    args.each do |arg|
      case state
-
      when :reading
        values[:switches][switch] = arg
        state = :searching
@@ -36,9 +36,11 @@ class ArgumentProcessor
          state = :reading
          switch = arg
        else
-         values[:errors] << 'invalid switch'
-         values[:commands] << "--help"
-         state = :error
+         unless  @commands.include?(arg)
+           values[:errors] << "invalid command #{arg}"
+           values[:commands] << "--help"
+          # state = :error
+         end
        end
      when :error
        return values
@@ -46,5 +48,4 @@ class ArgumentProcessor
    end if state != :end
  values
  end
-
 end
