@@ -1,6 +1,6 @@
 # SageoneEnv
 
-This gem configures the database yaml file in Sageone apps in order to connect to a Sageone obfuscated database instance. It searches the directory from which it is executed for Sageone apps.
+This gem configures the database yaml file in Sageone apps in order to connect to Sageone obfuscated database instances. It searches the directory from which it is executed for Sageone apps.
 
 Once installed it uses command line switches to receive values, such as the environment and builds targeted.
 Default settings are stored in a yaml file such as username and password but these can be overridden. It checks whether the changes have actually taken affect and outputs the result to the user.
@@ -17,8 +17,10 @@ Or install it yourself as:
 
     $ gem install sageone_env
 
-run rbenv rehash after installing
-
+after installing run 
+```ruby
+rbenv rehash
+```
 ## Usage
 
 The gem has defaults stored for each Sageone app available at the time of its launch. The following is a list of defaults held for each app:
@@ -33,25 +35,27 @@ sageone_env --set_defaults -u <username> -p <password>
 to persist the values.
 
 Once done this means the username and password parameters are not required when changing environments for this set of credentials. For example the obfuscated database which use the same username and password for every instance.
-The available switches for arguments are
+The available switches for arguments are:
 ```ruby
-sageone_env -e <environment> -t <host>  -u <username>(opt) -p <password>(opt)
+sageone_env -t <host> -e <environment>(opt) -u <username>(opt) -p <password>(opt)
 ```
-The available commands are
+The available commands are:
 ```ruby
 sageone_env --set_defaults --revert  --defaults --help -h <help>
 ```
 To configure all sageone apps to connect to a specific database, execute the following ***in the same directory as the sageone apps***
 ```ruby
-sageone_env -e <environment> -t <target>
+sageone_env -t <target> -e <environment>(opt)
 ```
 eg
 ```ruby
-sageone_env -e development -t ag-datauki-uat.sageone.biz
+sageone_env -t ag-datauki-uat.sageone.biz -e development(opt)
 ```
-or if no defaults have been set for username or password
+If no environment is provided ***development*** is used.
+
+If no defaults have been set for username or password:
 ```ruby
-sageone_env -e <environment> -t <target> -u <username> -p <password>
+sageone_env -t <target> -e <environment> -u <username> -p <password>
 ```
 ###NOTE: when providing the target/host, pass only the datauki build name. The new accountant edition build name is corrected automatically to point to dataad.
 
