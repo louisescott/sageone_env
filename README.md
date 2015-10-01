@@ -1,6 +1,6 @@
 # SageoneEnv
 
-This gem enables the database yaml file to be configured in each sage application within the directory it is executed from quickly and easily. Once installed it uses command line switches to pass values to, such as the environment and builds targeted.
+This gem enables the database yaml file to be configured in each sage application within the directory it is executed from quickly and easily. Once installed it uses command line switches to receive values, such as the environment and builds targeted.
 Default settings are stored in a yaml file such as username and password but these can be overridden. It checks whether the changes have actually taken affect and outputs the result to the user.
 The changes can easily be reversed with one call to the gem. It checks whether the reversal has been successful and outputs the result to the user.
 
@@ -19,7 +19,6 @@ run rbenv rehash after installing
 
 ## Usage
 
-TODO: Write usage instructions here
 The gem has defaults stored for each Sageone app available at the time of its launch. The following is a list of defaults held for each app:
   - database_name: <database name>
   - username: <username>
@@ -30,8 +29,28 @@ As credentials cannot be stored in source control it would be wise to update the
 sageone_env --set_defaults -u <username> -p <password>
 ```
 to persist the values.
-Once done this means a username and password is not required ot be passed for your favourite connection. For example the obfuscated database which use the same username and password for every instance.
 
+Once done this means the username and password parameters are not required when changing environments for this set of credentials. For example the obfuscated database which use the same username and password for every instance.
+The available switches for arguments are
+```ruby
+sageone_env -e <environment> -t <host> -d <database>(opt) -u <username>(opt) -p <password>(opt)
+```
+The available commands are
+```ruby
+sageone_env --set_defaults --revert  --defaults --help -h <help>
+```
+To configure all sageone apps to connect to a specific database, execute the following ***in the same directory as the sageone apps***
+```ruby
+sageone_env -e <environment> -t <target>
+```
+eg
+```ruby
+sageone_env -e development -t ag-datauki-uat.sageone.biz
+```
+or if no defaults have been set for username or password
+```ruby
+sageone_env -e <environment> -t <target> -u <username> -p <password>
+```
 The changes to the database.yml file involves wiping the file initially then writing new keys for the chosen environment. When finished simply call 
 ```ruby
 sageone_env --revert
