@@ -40,11 +40,11 @@ describe DatabaseConfigUpdater do
           DatabaseConfigUpdater.new(arg_processor,["-z"])
         end
       end
-      context "and the switch is '--default'" do
+      context "and the switch is '--defaults'" do
         it "expects the 'defaults' method to be called" do
           arg_processor = ArgumentProcessor.new
           expect_any_instance_of(DatabaseConfigUpdater).to receive(:defaults)
-          DatabaseConfigUpdater.new(arg_processor,["--default"])
+          DatabaseConfigUpdater.new(arg_processor,["--defaults"])
         end
       end
       context "and the switch is '--revert'" do
@@ -68,9 +68,9 @@ describe DatabaseConfigUpdater do
           end
         end
         context 'and the -e switch is not present' do
-          it "expects 'switch_environment' method not to be called" do
+          it "expects 'switch_environment' method to be called" do
             arg_processor = ArgumentProcessor.new
-            expect_any_instance_of(DatabaseConfigUpdater).to_not receive(:switch_environment)
+            expect_any_instance_of(DatabaseConfigUpdater).to receive(:switch_environment)
             DatabaseConfigUpdater.new(arg_processor,["-t","my-uat-build"])
           end
         end

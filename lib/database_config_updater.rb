@@ -50,14 +50,15 @@ class DatabaseConfigUpdater
     elsif args[:switches].any?
       args[:switches].each do |switch|
         case switch.first
-        when "-e"
-          if args[:switches].include?("-t")
-            switch_environment
-          else
-            print_help
-          end
+        #when "-e"
+         # if args[:switches].include?("-t")
+          #  switch_environment
+          #else
+           # print_help
+         # end
         when "-t"
-          print_help unless  args[:switches].include?("-e")
+          #print_help unless  args[:switches].include?("-e")
+          switch_environment
         end
       end
     end
@@ -172,20 +173,21 @@ class DatabaseConfigUpdater
 
   def configure_yaml_settings(app)
     yaml ="#{@pwd}/#{app[0]}/#{app[1]["yml_location"]}"
-    prepare_database_yaml(yaml)
+    environment = @args[:switches]["-e"] || "development"
+    prepare_database_yaml(yaml, environment)
     config = YAML.load_file(yaml)
-    set_host(config,yaml,app)
-    set_database(config,yaml,app)
-    set_username_and_password(config,yaml,app)
+    set_host(config,yaml,app,environment)
+    set_database(config,yaml,app, environment)
+    set_username_and_password(config,yaml,app,environment)
     save_yaml_to_file(config,yaml)
   end
 
-  def prepare_database_yaml(path_to_yaml)
+  def prepare_database_yaml(path_to_yaml, environment)
     File.open(path_to_yaml, 'w') {|file| file.truncate(0) }
     require 'yaml/store'
     database_yaml = YAML::Store.new 'database.yml'
     database_yaml.transaction do
-    database_yaml[@args[:switches]["-e"]] = { 'adapter' => 'mysql2',
+    database_yaml[environment] = { 'adapter' => 'mysql2',
                                  'encoding' =>'utf8',
                                  'pool' => 5,
                                  'username' => 'username',
@@ -201,19 +203,19 @@ class DatabaseConfigUpdater
     end
   end
 
-  def set_host(config, yaml, app)
+  def set_host(config, yaml, app, environment)
     host = @args[:switches]["-t"].dup
     host = host.gsub(/datauki/,'dataad') if app[0] == 'new_accountant_edition'
-    config[@args[:switches]["-e"]]["host"] = host
+    config[environment]["host"] = host
   end
 
-  def set_username_and_password(config,yaml,app)
-    config[@args[:switches]["-e"]]["username"] =  @args[:switches]["-u"] || app[1]["username"]
-    config[@args[:switches]["-e"]]["password"] =  @args[:switches]["-p"] || app[1]["password"]
+  def set_username_and_password(config,yaml,app, environment)
+    config[environment]["username"] =  @args[:switches]["-u"] || app[1]["username"]
+    config[environment]["password"] =  @args[:switches]["-p"] || app[1]["password"]
   end
 
-  def set_database(config,yaml_file, app)
-    config[@args[:switches]["-e"]]["database"]  =  @args[:switches]["-d"] || app[1]["database_name"]
+  def set_database(config,yaml_file, app, environment)
+    config[environment]["database"]  =  @args[:switches]["-d"] || app[1]["database_name"]
   end
 
   def defaults
@@ -249,7 +251,7 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                          Use the following switches to pass arguments.                                                                     ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                                                                     ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -e <environment>   [",36) + colorize("required",31) + colorize("]                                                                                     ",36) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          -e <environment>   [optional] - defaults to development                                                           ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -u <username>      [optional]                                                                                     ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          -p <password>      [optional]                                                                                     ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)

@@ -37,7 +37,7 @@ class ArgumentProcessor
          switch = arg
        else
          unless  @commands.include?(arg)
-           values[:errors] << "invalid command #{arg}"
+           values[:errors] << "invalid switch #{arg}"
            values[:commands] << "--help"
           # state = :error
          end
