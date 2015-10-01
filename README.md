@@ -1,6 +1,6 @@
 # SageoneEnv
 
-This gem enables the database yaml file to be configured in each sage application within the directory it is executed from quickly and easily. Once installed it uses command line switches to pass values to, such as the environment and builds targeted.
+This gem enables the database yaml file to be configured in each sage application within the directory it is executed from quickly and easily. Once installed it uses command line switches to receive values, such as the environment and builds targeted.
 Default settings are stored in a yaml file such as username and password but these can be overridden. It checks whether the changes have actually taken affect and outputs the result to the user.
 The changes can easily be reversed with one call to the gem. It checks whether the reversal has been successful and outputs the result to the user.
 
