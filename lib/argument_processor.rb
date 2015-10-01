@@ -5,7 +5,7 @@ class ArgumentProcessor
 
  def initialize
    @switches = {"-e" => "environment", "-h" => "help", "-t" => "host", "-d" => "database", "-u" => "username", "-p" => "password"}
-   @commands = ["--set_defaults","--revert", "--defaults", "--help", "-h"]
+   @commands = ["--set_defaults", "--detect_apps","--revert", "--defaults", "--help", "-h"]
  end
 
  def process_args(args)

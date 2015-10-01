@@ -40,6 +40,11 @@ class DatabaseConfigUpdater
           checkout_changes
         when "--set_defaults"
           puts 'configuration changes saved' if set_defaults
+        when "--detect_apps"
+          apps = sage_apps_in_pwd
+          apps.each do |app|
+            puts colorize("Found: ",32) + app
+          end
         end
       end
     elsif args[:switches].any?
@@ -135,8 +140,7 @@ class DatabaseConfigUpdater
       puts colorize("To undo the changes execute: #{colorize("sageone_env --revert",32)}",22)
       puts ""
     else
-      puts 'no changes made'
-      puts 'no sageone apps found in the current directory' if sage_apps_in_pwd.empty?
+      puts colorize('*************** No sageone apps found in the current directory ***************', 32) if sage_apps_in_pwd.empty?
     end
     puts ""
     puts colorize("The following have not been configured as you chose to keep existing changes:",32) if config_has_changed?(changes,false)
@@ -223,7 +227,7 @@ class DatabaseConfigUpdater
   end
 
   def sage_apps_in_pwd
-    Dir.glob('*').select {|f| puts f if sage_app? f}
+    Dir.glob('*').select {|f| sage_app? f}
   end
 
  def colorize(text, color_code)
@@ -255,6 +259,7 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                          Use the following commands                                                                      ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                                          ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--defaults " + colorize("to output default settings                                                           ",33) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          ",36) + "--detect_apps " + colorize("to view sageone apps found in the current directory                               ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--set_defaults -p <password> -u <username> " + colorize("to set default values                                ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                                          ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                                          ",36) + colorize("**",32)
