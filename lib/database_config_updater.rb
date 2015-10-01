@@ -254,7 +254,7 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                                                                                                                          ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                          Use the following commands                                                                      ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                                          ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--defaults " + colorize("to output default settings                                                            ",33) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          ",36) + "--defaults " + colorize("to output default settings                                                           ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--set_defaults -p <password> -u <username> " + colorize("to set default values                                ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                                          ",33) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                                          ",36) + colorize("**",32)
