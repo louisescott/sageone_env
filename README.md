@@ -39,7 +39,7 @@ The available commands are
 ```ruby
 sageone_env --set_defaults --revert  --defaults --help -h <help>
 ```
-To configure all sageone apps to connect to a specific database run 
+To configure all sageone apps to connect to a specific database, execute the following ***in the same directory as the sageone apps***
 ```ruby
 sageone_env -e <environment> -t <target>
 ```
