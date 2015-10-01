@@ -53,7 +53,7 @@ or if no defaults have been set for username or password
 ```ruby
 sageone_env -e <environment> -t <target> -u <username> -p <password>
 ```
-###NOTE: when providing the host, pass only the datauki build name. The new accountant edition build name is corrected automatically to point to dataad.
+###NOTE: when providing the target/host, pass only the datauki build name. The new accountant edition build name is corrected automatically to point to dataad.
 
 The changes to the database.yml file involves wiping the file initially then writing new keys for the chosen environment. When finished simply call
 ```ruby
