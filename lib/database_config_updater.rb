@@ -237,7 +237,7 @@ class DatabaseConfigUpdater
    puts colorize("**",32) + colorize("                          This tool configures database settings for a targeted environment by                            ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                          overwriting the database.yml. This file is used by rails to connect to the database.            ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                                          ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Enclose parameter values in qoutes if they contain special characters or spaces.                ",22) + colorize("**",32)
+   puts colorize("**",32) + colorize("                          Enclose parameter values in single quotes if they contain special characters or spaces.         ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                                                                                                                          ",36) + colorize("**",32)
    puts colorize("**",32) + colorize("                          To use run",22) + colorize(" sageone_env",32) + colorize(" with the desired switches/commands and value                             ",22) + colorize("**",32)
    puts colorize("**",32) + colorize("                          in the same directory as your Sage one apps.                                                    ",22) + colorize("**",32)
