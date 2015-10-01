@@ -29,8 +29,28 @@ As credentials cannot be stored in source control it would be wise to update the
 sageone_env --set_defaults -u <username> -p <password>
 ```
 to persist the values.
-Once done this means a username and password is not required ot be passed for your favourite connection. For example the obfuscated database which use the same username and password for every instance.
 
+Once done this means the username and password parameters are not required when changing environments for this set of credentials. For example the obfuscated database which use the same username and password for every instance.
+The available switches for arguments are
+```ruby
+sageone_env -e <environment> -t <host> -d <database>(opt) -u <username>(opt) -p <password>(opt)
+```
+The available commands are
+```ruby
+sageone_env --set_defaults --revert  --defaults --help -h <help>
+```
+To configure all sageone apps to connect to a specific database run 
+```ruby
+sageone_env -e <environment> -t <target>
+```
+eg
+```ruby
+sageone_env -e development -t ag-datauki-uat.sageone.biz
+```
+or if no defaults have been set for username or password
+```ruby
+sageone_env -e <environment> -t <target> -u <username> -p <password>
+```
 The changes to the database.yml file involves wiping the file initially then writing new keys for the chosen environment. When finished simply call 
 ```ruby
 sageone_env --revert
