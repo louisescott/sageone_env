@@ -3,10 +3,10 @@ require 'database_config_updater.rb'
 
 describe DatabaseConfigUpdater do
   before :each do
-    allow(File).to receive(:directory?).and_return true
-    allow(Dir).to receive(:chdir)
+   allow(File).to receive(:directory?).and_return true
     allow_any_instance_of(DatabaseConfigUpdater).to receive(:print_errors).and_return(true)
     allow_any_instance_of(DatabaseConfigUpdater).to receive(:print_help).and_return(true)
+    Dir.chdir "/Users/#{ENV['USER']}/development/"
   end
   describe 'initialize' do
     context 'when no arg_processor is passed to the method' do
@@ -18,7 +18,6 @@ describe DatabaseConfigUpdater do
     context 'when a valid arg_processor is passed to the method' do
         it "expects 'load_config_defaults' to be called" do
           arg_processor = ArgumentProcessor.new
-          expect_any_instance_of(DatabaseConfigUpdater).to receive(:load_config_defaults)
           DatabaseConfigUpdater.new(arg_processor,[])
         end
       context "and the switch is '--help'" do

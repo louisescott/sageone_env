@@ -1,5 +1,6 @@
 require 'yaml'
 require_relative 'argument_processor.rb'
+require_relative 'sageone_connection.rb'
 
 class DatabaseConfigUpdater
 
@@ -7,7 +8,7 @@ class DatabaseConfigUpdater
     raise ArgumentError.new("argument processor is nil")  if arg_processor.nil?
     @pwd = Dir.pwd
     @arg_processor = arg_processor
-    @config = load_config_defaults
+    @connections = load_sageone_connections
     @args = @arg_processor.process_args(args)
     print_errors if @args[:errors].any?
     route_request(@args)
@@ -26,6 +27,22 @@ class DatabaseConfigUpdater
     database_defaults = File.join(path, '../config/database_defaults.yml' )
     YAML.load_file(File.open(database_defaults))
   end
+
+  def load_sageone_connections
+    connections = []
+    defaults = load_config_defaults
+    defaults.each do |default|
+      connection = SageoneConnection.new
+      connection.app_name = default[0]
+      connection.database = default[1]["database_name"]
+      connection.username = default[1]["username"]
+      connection.password = default[1]["password"]
+      connection.yaml_location = default[1]["yml_location"]
+      connections.push connection
+    end
+    connections
+  end
+
 
   def route_request(args)
     if args[:commands].any?
@@ -50,14 +67,7 @@ class DatabaseConfigUpdater
     elsif args[:switches].any?
       args[:switches].each do |switch|
         case switch.first
-        #when "-e"
-         # if args[:switches].include?("-t")
-          #  switch_environment
-          #else
-           # print_help
-         # end
         when "-t"
-          #print_help unless  args[:switches].include?("-e")
           switch_environment
         end
       end
@@ -67,13 +77,13 @@ class DatabaseConfigUpdater
   def set_defaults
     settings = @args[:switches].select {|key, value| key.to_s.match(/-p|-u/) }
     defaults = load_config_defaults
-    defaults.each do |repo|
+    defaults.each do |default|
       settings.each do |setting|
         case setting[0]
         when "-p"
-          repo[1]['password'] = setting[1]
+          default[1]['password'] = setting[1]
         when "-u"
-          repo[1]['username'] = setting[1]
+          default[1]['username'] = setting[1]
         end
       end
     end
@@ -83,8 +93,8 @@ class DatabaseConfigUpdater
 
   def checkout_changes
     puts ""
-    @config.each do |app|
-    yaml_path = get_yaml_path(app)
+    @connections.each do |connection|
+      yaml_path = get_yaml_path(connection)
       if File.directory?(yaml_path)
         begin
           Dir.chdir yaml_path
@@ -95,33 +105,32 @@ class DatabaseConfigUpdater
         if status.include?("database.yml")
           system("git checkout database.yml")
           status = `git status`
-          puts colorize("reverted to original:",32) + " #{app[0]}/#{app[1]["yml_location"]}" if !status.include?("database.yml")
+          puts colorize("reverted to original:",32) + " #{connection.app_name}/#{connection.yaml_location}" if !status.include?("database.yml")
         end
       end
     end
-      Dir.chdir @pwd
+    Dir.chdir @pwd
     puts ""
   end
 
-  def get_yaml_path(app)
-    "#{@pwd}/#{app[0].to_s}/host_app/config/"
+  def get_yaml_path(connection)
+    "#{@pwd}/#{connection.app_name}/host_app/config/"
   end
 
   def switch_environment
-    ENV['DATABASE_UID'] = "DB"
     changes = {}
-    @config.each do |app|
-    yaml_path = get_yaml_path(app)
+    @connections.each do |connection|
+      yaml_path = get_yaml_path(connection)
       if File.directory?(yaml_path)
         Dir.chdir yaml_path
         can_proceed = if yaml_dirty?
-                        user_wants_to_proceed_when_dirty?(app[0]) ? true : false
+                        user_wants_to_proceed_when_dirty?(connection.app_name) ? true : false
                       else
                         true
                       end
-        configure_yaml_settings(app) if can_proceed
+        configure_yaml_settings(connection) if can_proceed
         status = `git status`
-        changes[app[0]] = {:file => "#{app[0]}/#{app[1]["yml_location"]}" , :dirtied? => can_proceed }  if status.include?("database.yml")
+        changes[connection.app_name] = {:file => "#{connection.app_name}/#{connection.yaml_location }" , :dirtied? => can_proceed }  if status.include?("database.yml")
       end
       Dir.chdir @pwd
     end
@@ -130,7 +139,7 @@ class DatabaseConfigUpdater
 
   def output_changes(changes)
     puts ""
-    if config_has_changed?(changes,true)
+    if connection_has_changed?(changes,true)
       puts colorize("Configured #{colorize("for host:",32)} #{colorize("'#{@args[:switches]["-t"]}'",33)} #{colorize("in the following apps:",32)} ",32)
       puts ""
       changes.each do |app, dirtied|
@@ -144,15 +153,15 @@ class DatabaseConfigUpdater
       puts colorize('*************** No sageone apps found in the current directory ***************', 32) if sage_apps_in_pwd.empty?
     end
     puts ""
-    puts colorize("The following have not been configured as you chose to keep existing changes:",32) if config_has_changed?(changes,false)
-    changes.each do |app, dirtied|
-      puts dirtied[:file] if  dirtied[:dirtied?] == false
+    puts colorize("The following have not been configured as you chose to keep existing changes:",32) if connection_has_changed?(changes,false)
+    changes.each do |app, yaml|
+      puts yaml[:file] if  yaml[:dirtied?] == false
     end
 
     puts ""
   end
 
-  def config_has_changed?(changes,is_dirty)
+  def connection_has_changed?(changes,is_dirty)
     changes.select{|app,dirtied| dirtied[:dirtied?]==is_dirty}.any?
   end
 
@@ -171,14 +180,16 @@ class DatabaseConfigUpdater
     STDIN.gets
   end
 
-  def configure_yaml_settings(app)
-    yaml ="#{@pwd}/#{app[0]}/#{app[1]["yml_location"]}"
+  def configure_yaml_settings(connection)
+    yaml ="#{@pwd}/#{connection.app_name}/#{connection.yaml_location}"
     environment = @args[:switches]["-e"] || "development"
     prepare_database_yaml(yaml, environment)
     config = YAML.load_file(yaml)
-    set_host(config,yaml,app,environment)
-    set_database(config,yaml,app, environment)
-    set_username_and_password(config,yaml,app,environment)
+
+    set_host(config,yaml, connection, environment)
+    set_database(config, yaml, connection, environment)
+    set_username_and_password(config, yaml, connection, environment)
+
     save_yaml_to_file(config,yaml)
   end
 
@@ -187,13 +198,13 @@ class DatabaseConfigUpdater
     require 'yaml/store'
     database_yaml = YAML::Store.new 'database.yml'
     database_yaml.transaction do
-    database_yaml[environment] = { 'adapter' => 'mysql2',
-                                 'encoding' =>'utf8',
-                                 'pool' => 5,
-                                 'username' => 'username',
-                                 'password' => 'password',
-                                 'host' => 'localhost',
-                                 'database' => 'database'}
+      database_yaml[environment] = { 'adapter' => 'mysql2',
+                                     'encoding' =>'utf8',
+                                     'pool' => 5,
+                                     'username' => 'username',
+                                     'password' => 'password',
+                                     'host' => 'localhost',
+                                     'database' => 'database'}
     end
   end
 
@@ -203,28 +214,28 @@ class DatabaseConfigUpdater
     end
   end
 
-  def set_host(config, yaml, app, environment)
+  def set_host(config, yaml, connection, environment)
     host = @args[:switches]["-t"].dup
-    host = host.gsub(/datauki/,'dataad') if app[0] == 'new_accountant_edition'
+    host = host.gsub(/datauki/,'dataad') if connection.app_name == 'new_accountant_edition'
     config[environment]["host"] = host
   end
 
-  def set_username_and_password(config,yaml,app, environment)
-    config[environment]["username"] =  @args[:switches]["-u"] || app[1]["username"]
-    config[environment]["password"] =  @args[:switches]["-p"] || app[1]["password"]
+  def set_username_and_password(config,yaml,connection, environment)
+    config[environment]["username"] =  @args[:switches]["-u"] || connection.username
+    config[environment]["password"] =  @args[:switches]["-p"] || connection.password
   end
 
-  def set_database(config,yaml_file, app, environment)
-    config[environment]["database"]  =  @args[:switches]["-d"] || app[1]["database_name"]
+  def set_database(config,yaml_file, connection, environment)
+    config[environment]["database"]  =  @args[:switches]["-d"] || connection.database
   end
 
   def defaults
-    @config.each do |app|
-    puts app[0]
-    puts "Database: #{ app[1]["database_name"]}"
-    puts "Username: #{ app[1]["username"]}"
-    puts "Password: #{ app[1]["password"]}"
-    puts ""
+    @connections.each do |connection|
+      puts app[0]
+      puts "Database: #{ connection.database_name }"
+      puts "Username: #{ connection.username }"
+      puts "Password: #{ connection.password }"
+      puts ""
     end
   end
 
@@ -232,48 +243,48 @@ class DatabaseConfigUpdater
     Dir.glob('*').select {|f| sage_app? f}
   end
 
- def colorize(text, color_code)
-   "\e[#{color_code}m#{text}\e[0m"
- end
+  def colorize(text, color_code)
+    "\e[#{color_code}m#{text}\e[0m"
+  end
 
- def print_help
-   puts ""
-   puts colorize("************************************************************************************************************************************************",32)
-   puts colorize("************************************************************************************************************************************************",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          This gem configures database settings for a targeted obfuscated data instance by                                  ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          overwriting the database.yml. This file is used by rails to connect to the database.                              ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Enclose parameter values in single quotes if they contain special characters or spaces.                           ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          To use run",22) + colorize(" sageone_env",32) + colorize(" with the desired switches/commands and value                                               ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          in the same directory as your Sage one apps.                                                                      ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Use the following switches to pass arguments.                                                                     ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                                                                     ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -e <environment>   [optional] - defaults to development                                                           ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -u <username>      [optional]                                                                                     ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          -p <password>      [optional]                                                                                     ",36) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          e.g. sageone_env -t my-uat-build -e test                                                                          ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Valid environments are 'test' and 'development'                                                                   ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          Use the following commands                                                                                        ",22) + colorize("**",32)
-   puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                                                            ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--defaults " + colorize("to output default settings                                                                             ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--detect_apps " + colorize("to view sageone apps found in the current directory                                                 ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--set_defaults -p <password> -u <username> " + colorize("to set default values                                                  ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                                                            ",33) + colorize("**",32)
-   puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
-   puts colorize("************************************************************************************************************************************************",32)
-   puts colorize("************************************************************************************************************************************************",32)
-   puts ""
- end
+  def print_help
+    puts ""
+    puts colorize("************************************************************************************************************************************************",32)
+    puts colorize("************************************************************************************************************************************************",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          This gem configures database settings for a targeted obfuscated data instance by                                  ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          overwriting the database.yml. This file is used by rails to connect to the database.                              ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          Enclose parameter values in single quotes if they contain special characters or spaces.                           ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          To use run",22) + colorize(" sageone_env",32) + colorize(" with the desired switches/commands and value                                               ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          in the same directory as your Sage one apps.                                                                      ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          Use the following switches to pass arguments.                                                                     ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          -t <host>          [",36) + colorize("required",31) + colorize("]                                                                                     ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          -e <environment>   [optional] - defaults to development                                                           ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          -u <username>      [optional]                                                                                     ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          -p <password>      [optional]                                                                                     ",36) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          e.g. sageone_env -t my-uat-build -e test                                                                          ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          Valid environments are 'test' and 'development'                                                                   ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          Use the following commands                                                                                        ",22) + colorize("**",32)
+    puts colorize("**",32) + colorize("                         ",36) + " --revert  " + colorize("to checkout changes made to any database.yml                                                            ",33) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          ",36) + "--defaults " + colorize("to output default settings                                                                             ",33) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          ",36) + "--detect_apps " + colorize("to view sageone apps found in the current directory                                                 ",33) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          ",36) + "--set_defaults -p <password> -u <username> " + colorize("to set default values                                                  ",33) + colorize("**",32)
+    puts colorize("**",32) + colorize("                          ",36) + "--help -h " + colorize("to view help                                                                                            ",33) + colorize("**",32)
+    puts colorize("**",32) + colorize("                                                                                                                                            ",36) + colorize("**",32)
+    puts colorize("************************************************************************************************************************************************",32)
+    puts colorize("************************************************************************************************************************************************",32)
+    puts ""
+  end
 
   def sage_app?(dir)
     if File.directory? dir
-      @config.each do |app|
-        return true if dir.include?(app.first)
+      @connections.each do |connection|
+        return true if dir.include?(connection.app_name)
       end
     end
     false
