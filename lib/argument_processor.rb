@@ -1,5 +1,4 @@
 require 'yaml'
-require "erb"
 
 class ArgumentProcessor
 

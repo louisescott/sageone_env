@@ -43,7 +43,6 @@ class DatabaseConfigUpdater
     connections
   end
 
-
   def route_request(args)
     if args[:commands].any?
       args[:commands].each do |command|

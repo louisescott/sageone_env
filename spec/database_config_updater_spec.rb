@@ -18,6 +18,12 @@ describe DatabaseConfigUpdater do
     context 'when a valid arg_processor is passed to the method' do
         it "expects 'load_config_defaults' to be called" do
           arg_processor = ArgumentProcessor.new
+          expect_any_instance_of(DatabaseConfigUpdater).to receive(:load_config_defaults).and_return([])
+          DatabaseConfigUpdater.new(arg_processor,[])
+        end
+        it "expects 'load_sageone_connections to be called" do
+          arg_processor = ArgumentProcessor.new
+          expect_any_instance_of(DatabaseConfigUpdater).to receive(:load_sageone_connections)
           DatabaseConfigUpdater.new(arg_processor,[])
         end
       context "and the switch is '--help'" do
@@ -63,6 +69,7 @@ describe DatabaseConfigUpdater do
           it "expects 'configure_yaml_settings' method to be called for each app" do
             arg_processor = ArgumentProcessor.new
             expect_any_instance_of(DatabaseConfigUpdater).to receive(:configure_yaml_settings).exactly(6).times
+            allow_any_instance_of(DatabaseConfigUpdater).to receive(:output_changes)
             DatabaseConfigUpdater.new(arg_processor,["-t","my-uat-build","-e","test"])
           end
         end
