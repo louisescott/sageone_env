@@ -230,8 +230,8 @@ class DatabaseConfigUpdater
 
   def defaults
     @connections.each do |connection|
-      puts app[0]
-      puts "Database: #{ connection.database_name }"
+      puts connection.app_name
+      puts "Database: #{ connection.database }"
       puts "Username: #{ connection.username }"
       puts "Password: #{ connection.password }"
       puts ""
