@@ -104,7 +104,9 @@ class DatabaseConfigUpdater
         if status.include?("database.yml")
           system("git checkout database.yml")
           status = `git status`
-          puts colorize("reverted to original:",32) + " #{connection.app_name}/#{connection.yaml_location}" if !status.include?("database.yml")
+          puts colorize("Reverted to original:",32) + " #{connection.app_name}/#{connection.yaml_location}" if !status.include?("database.yml")
+        else
+          puts colorize("No changes to revert:",33) + " #{connection.app_name}/#{connection.yaml_location}" if !status.include?("database.yml")
         end
       end
     end
