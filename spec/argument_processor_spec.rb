@@ -23,5 +23,20 @@ describe ArgumentProcessor do
         expect(subject.process_args(["-t","test","-d","my_database"])).to eq({:commands=>[],:switches=>{"-t"=>"test","-d"=> "my_database"},:errors=>[]})
       end
     end
+    context 'when --defaults' do
+      it 'expects values to include the correct switches and values in the return' do
+        expect(subject.process_args(["--defaults"])).to eq({:commands=>["--defaults"],:switches=>{},:errors=>[]})
+      end
+    end
+    context 'when --set_defaults with username and password switches' do
+      it 'expects values to include the correct switches and values in the return' do
+        expect(subject.process_args(["--set_defaults","-p","my_password","-u","my_username"])).to eq({:commands=>["--set_defaults"],:switches=>{"-p" => "my_password", "-u" => "my_username" },:errors=>[]})
+      end
+    end
+    context 'when --detect_apps' do
+      it 'expects values to include the correct switches and values in the return' do
+        expect(subject.process_args(["--detect_apps"])).to eq({:commands=>["--detect_apps"],:switches=>{},:errors=>[]})
+      end
+    end
   end
 end
