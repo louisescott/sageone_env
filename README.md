@@ -9,6 +9,7 @@ The changes can easily be reversed with one call to the gem. It checks whether t
 ## Installation
 #To use as a command line application clone the repository and run:
 
+git clone git@github.com:nige-s/sageone_env.git
 ```ruby
 rake install
 ```
